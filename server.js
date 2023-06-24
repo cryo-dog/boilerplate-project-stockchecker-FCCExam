@@ -3,12 +3,37 @@ require('dotenv').config();
 const express     = require('express');
 const bodyParser  = require('body-parser');
 const cors        = require('cors');
+const helmet      = require("helmet");
+const helmetCsp   = require("helmet-csp");
 
 const apiRoutes         = require('./routes/api.js');
 const fccTestingRoutes  = require('./routes/fcctesting.js');
 const runner            = require('./test-runner');
 
 const app = express();
+
+app.use(helmet());
+app.use(
+  helmetCsp({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'"],
+    },
+  })
+);
+
+// TR: Added DB connection
+const mongoose = require("mongoose");
+mongoose.connect(process.env.DB, {useNewUrlParser: true, useUnifiedTopology: true });
+const db = mongoose.connection;
+db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+db.once('open', function() {
+  console.log('MongoDB database connection established successfully in server.js');
+});
+
+
+// TR: End of DB connection
 
 app.use('/public', express.static(process.cwd() + '/public'));
 
